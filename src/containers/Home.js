@@ -5,6 +5,7 @@ import "./Home.css";
 import { useHistory } from "react-router-dom";
 import { AppContext } from "../lib/contextLib";
 import { useFormFields } from "../lib/hooksLib";
+import { Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
 
 export default function Home() {
@@ -18,7 +19,7 @@ export default function Home() {
 
   const [files, setFiles] = useState([]);
 
-  const user = React.useContext(AppContext);
+  const appContext = React.useContext(AppContext);
 
   function validateForm() {
     try {
@@ -33,10 +34,36 @@ export default function Home() {
     validateForm();
   }
 
+  async function downloadFile(id) {
+    const { data } = await axios.get(
+      "http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/url?id=" +
+        id,
+      {
+        headers: {
+          Authorization: "Bearer " + appContext.user.userToken,
+        },
+      }
+    );
+    console.log(data);
+    window.location.href = data;
+  }
+
+  async function deleteFile(id) {
+    const { data } = await axios.delete(
+      "http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/file?id=" +
+        id,
+      {
+        headers: {
+          Authorization: "Bearer " + appContext.user.userToken,
+        },
+      }
+    );
+    console.log(data);
+    fetchFiles();
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
-
-    console.log(user);
 
     if (file.current && file.current.size > MAX_ATTACHMENT_SIZE) {
       alert(
@@ -46,18 +73,23 @@ export default function Home() {
     } else if (file.current) {
       var formData = new FormData();
       formData.append("file", file.current);
-      formData.append("username", user.username);
+      formData.append("username", appContext.user.username);
       formData.append("title", fields.title);
       formData.append("description", fields.description);
 
       axios
-        .post(`http://3.137.182.39:8080/file`, formData, {
-          headers: {
-            Authorization: "Bearer " + user.userToken,
-          },
-        })
+        .post(
+          `http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/file`,
+          formData,
+          {
+            headers: {
+              Authorization: "Bearer " + appContext.user.userToken,
+            },
+          }
+        )
         .then((res) => {
           console.log(res);
+          fetchFiles();
         });
     } else {
       alert("Please select a file to upload.");
@@ -65,26 +97,25 @@ export default function Home() {
   }
 
   React.useEffect(() => {
-    if (user !== null && user.userToken !== "") {
-      axios.interceptors.request.use((request) => {
-        console.log("Starting Request", JSON.stringify(request, null, 2));
-        return request;
-      });
-
-      axios.interceptors.response.use((response) => {
-        console.log("Response:", JSON.stringify(response, null, 2));
-        return response;
-      });
+    if (
+      appContext !== null &&
+      appContext.user !== null &&
+      appContext.user.userToken !== ""
+    ) {
       fetchFiles();
     }
-  }, [user]);
+  }, [appContext]);
 
   const fetchFiles = async () => {
-    const { data } = await axios.get("http://3.137.182.39:8080/file", {
-      headers: {
-        Authorization: "Bearer " + user.userToken,
-      },
-    });
+    const { data } = await axios.get(
+      "http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/file?username=" +
+        appContext.user.username,
+      {
+        headers: {
+          Authorization: "Bearer " + appContext.user.userToken,
+        },
+      }
+    );
     console.log(data);
     setFiles(data);
   };
@@ -95,6 +126,58 @@ export default function Home() {
         {(context) =>
           context.user.userToken !== "" ? (
             <>
+              <div>
+                <Container>
+                  <Row>
+                    <Col>Title</Col>
+                    <Col>Description</Col>
+                    <Col>Filename</Col>
+                  </Row>
+                  {files.map((file) => (
+                    <Container>
+                      <Row>
+                        <Col>
+                          <p key={file.title}>{file.title}</p>
+                        </Col>
+                        <Col>
+                          <p key={file.description}>{file.description}</p>
+                        </Col>
+                        <Col>
+                          <p key={file.fileName}>{file.fileName}</p>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col>
+                          <Button
+                            block
+                            type="submit"
+                            size="lg"
+                            onClick={() => downloadFile(file.id)}
+                          >
+                            Download
+                          </Button>
+                        </Col>
+                        <Col>
+                          <Button block type="submit" size="lg">
+                            Update
+                          </Button>
+                        </Col>
+                        <Col>
+                          <Button
+                            block
+                            type="submit"
+                            size="lg"
+                            onClick={() => deleteFile(file.id)}
+                          >
+                            Delete
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Container>
+                  ))}
+                </Container>
+              </div>
               <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="title">
                   <Form.Label>Title</Form.Label>
@@ -125,11 +208,6 @@ export default function Home() {
                   Upload
                 </Button>
               </Form>
-              <div>
-                {files.map((file) => (
-                  <p key={file.title}>{file.title}</p>
-                ))}
-              </div>
             </>
           ) : (
             history.push("/login")

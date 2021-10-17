@@ -46,7 +46,11 @@ export default function Signup() {
     signupParams.append("last_name", fields.lastName);
     signupParams.append("role", "user");
     axios
-      .post(`http://3.137.182.39:8080/signup`, signupParams, config)
+      .post(
+        `http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/signup`,
+        signupParams,
+        config
+      )
       .then((res) => {
         console.log(res);
 

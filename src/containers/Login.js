@@ -33,7 +33,11 @@ export default function Login() {
     signupParams.append("password", fields.password);
 
     axios
-      .post(`http://3.137.182.39:8080/login`, signupParams, config)
+      .post(
+        `http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/login`,
+        signupParams,
+        config
+      )
       .then((res) => {
         console.log(res);
 
