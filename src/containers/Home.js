@@ -1,38 +1,23 @@
-import React, { useRef, useState } from "react";
-import Form from "react-bootstrap/Form";
+import React, { useState } from "react";
 import Button from "react-bootstrap/Button";
 import "./Home.css";
 import { useHistory } from "react-router-dom";
 import { AppContext } from "../lib/contextLib";
-import { useFormFields } from "../lib/hooksLib";
 import { Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
+import AddFileModal from "./AddFileModal";
+import UpdateFileModal from "./UpdateFileModal";
 
 export default function Home() {
-  const MAX_ATTACHMENT_SIZE = 10000000;
-  const file = useRef(null);
   const history = useHistory();
-  const [fields, handleFieldChange] = useFormFields({
-    title: "",
-    description: "",
-  });
+
+  const [addModalShow, setAddModalShow] = React.useState(false);
+  const [updateModalShow, setUpdateModalShow] = React.useState(false);
 
   const [files, setFiles] = useState([]);
+  const [selectedFile, setSelectedFile] = useState([]);
 
   const appContext = React.useContext(AppContext);
-
-  function validateForm() {
-    try {
-      return fields.title.length > 0 && fields.description.length > 0;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function handleFileChange(event) {
-    file.current = event.target.files[0];
-    validateForm();
-  }
 
   async function downloadFile(id) {
     const { data } = await axios.get(
@@ -62,38 +47,9 @@ export default function Home() {
     fetchFiles();
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    if (file.current && file.current.size > MAX_ATTACHMENT_SIZE) {
-      alert(
-        `Please pick a file smaller than ${MAX_ATTACHMENT_SIZE / 1000000} MB.`
-      );
-      return;
-    } else if (file.current) {
-      var formData = new FormData();
-      formData.append("file", file.current);
-      formData.append("username", appContext.user.username);
-      formData.append("title", fields.title);
-      formData.append("description", fields.description);
-
-      axios
-        .post(
-          `http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/file`,
-          formData,
-          {
-            headers: {
-              Authorization: "Bearer " + appContext.user.userToken,
-            },
-          }
-        )
-        .then((res) => {
-          console.log(res);
-          fetchFiles();
-        });
-    } else {
-      alert("Please select a file to upload.");
-    }
+  function openUpdateFileModal(file) {
+    setSelectedFile(file);
+    setUpdateModalShow(true);
   }
 
   React.useEffect(() => {
@@ -128,13 +84,33 @@ export default function Home() {
             <>
               <div>
                 <Container>
-                  <Row>
-                    <Col>Title</Col>
-                    <Col>Description</Col>
-                    <Col>Filename</Col>
-                  </Row>
+                  <Container>
+                    <Row className="align-items-center">
+                      <Col style={{ fontSize: "1rem" }}>
+                        <b>Title</b>
+                      </Col>
+                      <Col style={{ fontSize: "1rem" }}>
+                        <b>Description</b>
+                      </Col>
+                      <Col style={{ fontSize: "1rem" }}>
+                        <b>File Name</b>
+                      </Col>
+                      <Col></Col>
+                      <Col></Col>
+                      <Col>
+                        <Button
+                          variant="dark"
+                          block
+                          size="lg"
+                          onClick={() => setAddModalShow(true)}
+                        >
+                          Upload
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Container>
                   {files.map((file) => (
-                    <Container>
+                    <Container style={{ paddingTop: 10 }}>
                       <Row>
                         <Col>
                           <p key={file.title}>{file.title}</p>
@@ -145,29 +121,30 @@ export default function Home() {
                         <Col>
                           <p key={file.fileName}>{file.fileName}</p>
                         </Col>
-                      </Row>
-
-                      <Row>
                         <Col>
                           <Button
+                            variant="success"
                             block
-                            type="submit"
-                            size="lg"
+                            size="sm"
                             onClick={() => downloadFile(file.id)}
                           >
                             Download
                           </Button>
                         </Col>
                         <Col>
-                          <Button block type="submit" size="lg">
+                          <Button
+                            block
+                            size="sm"
+                            onClick={() => openUpdateFileModal(file)}
+                          >
                             Update
                           </Button>
                         </Col>
                         <Col>
                           <Button
+                            variant="danger"
                             block
-                            type="submit"
-                            size="lg"
+                            size="sm"
                             onClick={() => deleteFile(file.id)}
                           >
                             Delete
@@ -178,36 +155,19 @@ export default function Home() {
                   ))}
                 </Container>
               </div>
-              <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="title">
-                  <Form.Label>Title</Form.Label>
-                  <Form.Control
-                    value={fields.title}
-                    type="text"
-                    onChange={handleFieldChange}
-                  />
-                </Form.Group>
-                <Form.Group controlId="description">
-                  <Form.Label>Description</Form.Label>
-                  <Form.Control
-                    value={fields.description}
-                    type="text"
-                    onChange={handleFieldChange}
-                  />
-                </Form.Group>
-                <Form.Group controlId="file">
-                  <Form.Label>Attachment</Form.Label>
-                  <Form.Control onChange={handleFileChange} type="file" />
-                </Form.Group>
-                <Button
-                  block
-                  type="submit"
-                  size="lg"
-                  disabled={!validateForm()}
-                >
-                  Upload
-                </Button>
-              </Form>
+
+              <UpdateFileModal
+                show={updateModalShow}
+                file={selectedFile}
+                onUploaded={() => fetchFiles()}
+                onHide={() => setUpdateModalShow(false)}
+              />
+
+              <AddFileModal
+                show={addModalShow}
+                onUploaded={() => fetchFiles()}
+                onHide={() => setAddModalShow(false)}
+              />
             </>
           ) : (
             history.push("/login")
