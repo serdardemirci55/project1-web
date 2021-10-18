@@ -64,16 +64,15 @@ export default function Home() {
 
   const fetchFiles = async () => {
     const { data } = await axios.get(
-      "http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/file?username=" +
-        appContext.user.username,
+      "http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/file",
       {
         headers: {
           Authorization: "Bearer " + appContext.user.userToken,
         },
       }
     );
-    console.log(data);
     setFiles(data);
+ 
   };
 
   return (
@@ -81,94 +80,212 @@ export default function Home() {
       <AppContext.Consumer>
         {(context) =>
           context.user.userToken !== "" ? (
-            <>
-              <div>
-                <Container>
+            context.user.userRole == "admin" ? (
+              <>
+                <div>
                   <Container>
-                    <Row className="align-items-center">
-                      <Col style={{ fontSize: "1rem" }}>
-                        <b>Title</b>
-                      </Col>
-                      <Col style={{ fontSize: "1rem" }}>
-                        <b>Description</b>
-                      </Col>
-                      <Col style={{ fontSize: "1rem" }}>
-                        <b>File Name</b>
-                      </Col>
-                      <Col></Col>
-                      <Col></Col>
-                      <Col>
-                        <Button
-                          variant="dark"
-                          block
-                          size="lg"
-                          onClick={() => setAddModalShow(true)}
-                        >
-                          Upload
-                        </Button>
-                      </Col>
-                    </Row>
-                  </Container>
-                  {files.map((file) => (
-                    <Container style={{ paddingTop: 10 }}>
+                    <Container>
                       <Row>
-                        <Col>
-                          <p key={file.title}>{file.title}</p>
+                        <Col xs="3"><b>User Name: </b> {context.user.userName} <p> </p></Col>
+                      </Row>
+                    </Container>
+                    <Container>
+                      <Row className="align-items-center">
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Name</b>
                         </Col>
-                        <Col>
-                          <p key={file.description}>{file.description}</p>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Last Name</b>
                         </Col>
-                        <Col>
-                          <p key={file.fileName}>{file.fileName}</p>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Upload Time</b>
                         </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Update Time</b>
+                        </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Description</b>
+                        </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Title</b>
+                        </Col>
+                        <Col></Col>
+                        <Col></Col>
+                      </Row>
+                    </Container>
+                    {files.map((file) => (
+                      <Container style={{ paddingTop: 10 }}>
+                        <Row>
+                          <Col>
+                            <p key={file.firstName}>{file.firstName}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.lastName}>{file.lastName}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.uploadTime}>{file.uploadTime}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.updatedTime}>{file.updatedTime}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.description}>{file.description}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.title}>{file.title}</p>
+                          </Col>
+                          <Col>
+                            <Button
+                              variant="success"
+                              block
+                              size="sm"
+                              onClick={() => downloadFile(file.id)}
+                            >
+                              Download
+                            </Button>
+                          </Col>
+                          <Col>
+                            <Button
+                              variant="danger"
+                              block
+                              size="sm"
+                              onClick={() => deleteFile(file.id)}
+                            >
+                              Delete
+                            </Button>
+                          </Col>
+                        </Row>
+                      </Container>
+                    ))}
+                  </Container>
+                </div>
+
+                <UpdateFileModal
+                  show={updateModalShow}
+                  file={selectedFile}
+                  onUploaded={() => fetchFiles()}
+                  onHide={() => setUpdateModalShow(false)}
+                />
+
+                <AddFileModal
+                  show={addModalShow}
+                  onUploaded={() => fetchFiles()}
+                  onHide={() => setAddModalShow(false)}
+                />
+              </>
+              ) : (
+                <>
+                <div>
+                  <Container>
+                  <Container>
+                      <Row>
+                        <Col xs="3"><b>User Name: </b> {context.user.userName} <p> </p></Col>
+                      </Row>
+                    </Container>
+                    <Container>
+                      <Row className="align-items-center">
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Name</b>
+                        </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Last Name</b>
+                        </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Upload Time</b>
+                        </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Update Time</b>
+                        </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Description</b>
+                        </Col>
+                        <Col style={{ fontSize: "1rem" }}>
+                          <b>Title</b>
+                        </Col>
+                        <Col></Col>
+                        <Col></Col>
                         <Col>
                           <Button
-                            variant="success"
+                            variant="dark"
                             block
-                            size="sm"
-                            onClick={() => downloadFile(file.id)}
+                            size="lg"
+                            onClick={() => setAddModalShow(true)}
                           >
-                            Download
-                          </Button>
-                        </Col>
-                        <Col>
-                          <Button
-                            block
-                            size="sm"
-                            onClick={() => openUpdateFileModal(file)}
-                          >
-                            Update
-                          </Button>
-                        </Col>
-                        <Col>
-                          <Button
-                            variant="danger"
-                            block
-                            size="sm"
-                            onClick={() => deleteFile(file.id)}
-                          >
-                            Delete
+                            Upload
                           </Button>
                         </Col>
                       </Row>
                     </Container>
-                  ))}
-                </Container>
-              </div>
+                    {files.map((file) => (
+                      <Container style={{ paddingTop: 10 }}>
+                        <Row>
+                          <Col>
+                            <p key={file.firstName}>{file.firstName}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.lastName}>{file.lastName}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.uploadTime}>{file.uploadTime}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.updatedTime}>{file.updatedTime}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.description}>{file.description}</p>
+                          </Col>
+                          <Col>
+                            <p key={file.title}>{file.title}</p>
+                          </Col>
+                          <Col>
+                            <Button
+                              variant="success"
+                              block
+                              size="sm"
+                              onClick={() => downloadFile(file.id)}
+                            >
+                              Download
+                            </Button>
+                          </Col>
+                          <Col>
+                            <Button
+                              block
+                              size="sm"
+                              onClick={() => openUpdateFileModal(file)}
+                            >
+                              Update
+                            </Button>
+                          </Col>
+                          <Col>
+                            <Button
+                              variant="danger"
+                              block
+                              size="sm"
+                              onClick={() => deleteFile(file.id)}
+                            >
+                              Delete
+                            </Button>
+                          </Col>
+                        </Row>
+                      </Container>
+                    ))}
+                  </Container>
+                </div>
 
-              <UpdateFileModal
-                show={updateModalShow}
-                file={selectedFile}
-                onUploaded={() => fetchFiles()}
-                onHide={() => setUpdateModalShow(false)}
-              />
+                <UpdateFileModal
+                  show={updateModalShow}
+                  file={selectedFile}
+                  onUploaded={() => fetchFiles()}
+                  onHide={() => setUpdateModalShow(false)}
+                />
 
-              <AddFileModal
-                show={addModalShow}
-                onUploaded={() => fetchFiles()}
-                onHide={() => setAddModalShow(false)}
-              />
-            </>
+                <AddFileModal
+                  show={addModalShow}
+                  onUploaded={() => fetchFiles()}
+                  onHide={() => setAddModalShow(false)}
+                />
+              </>
+              )
           ) : (
             history.push("/login")
           )

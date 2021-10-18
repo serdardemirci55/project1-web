@@ -2,7 +2,7 @@ import React from "react";
 import Form from "react-bootstrap/Form";
 import { useHistory } from "react-router-dom";
 import Button from "react-bootstrap/Button";
-import { useAppContext } from "../lib/contextLib";
+import { AppContext, useAppContext } from "../lib/contextLib";
 import { useFormFields } from "../lib/hooksLib";
 import axios from "axios";
 import "./Login.css";
@@ -32,25 +32,22 @@ export default function Login() {
     signupParams.append("username", fields.email);
     signupParams.append("password", fields.password);
 
-    axios
-      .post(
+    const { data } = await axios.post(
         `http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/login`,
         signupParams,
         config
       )
-      .then((res) => {
-        console.log(res);
-
-        if (res.data.toString().startsWith("Incorrect")) {
-          alert(res.data.toString());
+        if (data.token.startsWith("Incorrect")) {
+          alert(data.token);
         } else {
+          console.log(fields.email);
           setUser({
-            userToken: res.data.toString(),
-            username: fields.email,
+            userToken: data.token,
+            userRole: data.role,
+            userName: fields.email
           });
           history.push("/");
         }
-      });
   }
 
   return (
