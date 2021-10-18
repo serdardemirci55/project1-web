@@ -29,7 +29,6 @@ export default function Home() {
         },
       }
     );
-    console.log(data);
     window.location.href = data;
   }
 
@@ -43,7 +42,7 @@ export default function Home() {
         },
       }
     );
-    console.log(data);
+    alert("File deleted!");
     fetchFiles();
   }
 
@@ -72,7 +71,6 @@ export default function Home() {
       }
     );
     setFiles(data);
- 
   };
 
   return (

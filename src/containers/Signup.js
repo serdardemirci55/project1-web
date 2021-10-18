@@ -13,6 +13,7 @@ export default function Signup() {
     lastName: "",
     password: "",
     confirmPassword: "",
+    userRole: "",
   });
   const history = useHistory();
 
@@ -23,7 +24,8 @@ export default function Signup() {
         fields.firstName.length > 0 &&
         fields.lastName.length > 0 &&
         fields.password.length > 0 &&
-        fields.password === fields.confirmPassword
+        fields.password === fields.confirmPassword &&
+        fields.userRole.length > 0
       );
     } catch (e) {
       return false;
@@ -44,7 +46,7 @@ export default function Signup() {
     signupParams.append("password", fields.password);
     signupParams.append("first_name", fields.firstName);
     signupParams.append("last_name", fields.lastName);
-    signupParams.append("role", "user");
+    signupParams.append("role", fields.userRole);
     axios
       .post(
         `http://Cmpe281Project1AppLoadbalancer-1926089453.us-east-2.elb.amazonaws.com:8080/signup`,
@@ -52,11 +54,11 @@ export default function Signup() {
         config
       )
       .then((res) => {
-        console.log(res);
-
+        
         if (res.data !== "Success") {
           alert(res.data.toString());
         } else {
+          alert("Signup Success!");
           history.push("/login");
         }
       });
@@ -104,6 +106,14 @@ export default function Signup() {
             type="password"
             onChange={handleFieldChange}
             value={fields.confirmPassword}
+          />
+        </Form.Group>
+        <Form.Group controlId="userRole" size="lg">
+          <Form.Label>User Role</Form.Label>
+          <Form.Control
+            type="text"
+            value={fields.userRole}
+            onChange={handleFieldChange}
           />
         </Form.Group>
         <Button block size="lg" type="submit" disabled={!validateForm()}>

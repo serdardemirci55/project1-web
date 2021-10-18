@@ -41,7 +41,6 @@ export default function AddFileModal(props) {
       var formData = new FormData();
       formData.append("id", props.file.id);
       formData.append("file", file.current);
-      formData.append("username", appContext.user.username);
       formData.append("description", fields.description);
 
       axios
@@ -55,7 +54,7 @@ export default function AddFileModal(props) {
           }
         )
         .then((res) => {
-          console.log(res);
+          alert("File updated!");
           fields.description = "";
           file.current = null;
           props.onUploaded();

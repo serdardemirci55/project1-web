@@ -56,7 +56,7 @@ export default function AddFileModal(props) {
           }
         )
         .then((res) => {
-          console.log(res);
+          alert("File uploaded!");
           fields.title = "";
           fields.description = "";
           props.onUploaded();
