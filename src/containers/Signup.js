@@ -109,7 +109,7 @@ export default function Signup() {
           />
         </Form.Group>
         <Form.Group controlId="userRole" size="lg">
-          <Form.Label>User Role</Form.Label>
+          <Form.Label>User Role (user/admin)</Form.Label>
           <Form.Control
             type="text"
             value={fields.userRole}
